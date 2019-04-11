@@ -91,6 +91,8 @@ Orderer: &OrdererDefaults
 
     Addresses:
         - orderer.example.com:7050
+        - orderer2.example.com:7050
+        - orderer3.example.com:7050
 
     # Batch Timeout: The amount of time to wait before creating a batch
     BatchTimeout: 2s
@@ -111,7 +113,7 @@ Orderer: &OrdererDefaults
         PreferredMaxBytes: 512 KB
 
     EtcdRaft:
-        Consenters:
+      Consenters:
         - Host: orderer.example.com
           Port: 7050
           ClientTLSCert: ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
