@@ -1,0 +1,17 @@
+# Sample config for Prometheus.
+
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  external_labels:
+      monitor: 'example'
+
+rule_files:
+  # - "first.rules"
+  # - "second.rules"
+
+scrape_configs:
+  - job_name: 'prometheus'
+
+    static_configs:
+       - targets: ['orderer.example.com:8443', 'peer0.org1.example.com:9443', 'peer1.org1.example.com:9443', 'peer0.org2.example.com:9443', 'peer1.org2.example.com:9443']
