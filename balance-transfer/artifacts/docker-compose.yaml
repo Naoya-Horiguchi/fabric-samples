@@ -159,3 +159,12 @@ services:
       - peer0.org2.example.com
       - peer1.org2.example.com
       - orderer.example.com
+
+  grafana:
+    image: grafana/grafana:3.0.0-beta7
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
