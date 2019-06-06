@@ -23,7 +23,9 @@ services:
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_OPERATIONS_TLS_ENABLED=false
       - CORE_OPERATIONS_LISTENADDRESS=:9443
+      - CORE_METRICS_PROVIDER=prometheus
       - CORE_PEER_GOSSIP_PVTDATA_RECONCILIATIONENABLED=true
       - CORE_PEER_GOSSIP_PVTDATA_RECONCILESLEEPINTERVAL=2s
       - CORE_PEER_GOSSIP_PVTDATA_RECONCILEBATCHSIZE=1
@@ -49,7 +51,9 @@ services:
       - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
       - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
       - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_OPERATIONS_TLS_ENABLED=false
       - ORDERER_OPERATIONS_LISTENADDRESS=:8443
+      - ORDERER_METRICS_PROVIDER=prometheus
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: orderer
 
