@@ -24,6 +24,9 @@ services:
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       - CORE_OPERATIONS_LISTENADDRESS=:9443
+      - CORE_PEER_GOSSIP_PVTDATA_RECONCILIATIONENABLED=true
+      - CORE_PEER_GOSSIP_PVTDATA_RECONCILESLEEPINTERVAL=2s
+      - CORE_PEER_GOSSIP_PVTDATA_RECONCILEBATCHSIZE=1
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
 
