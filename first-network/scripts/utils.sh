@@ -134,17 +134,22 @@ instantiateChaincode() {
   setGlobals $PEER $ORG
   VERSION=${3:-1.0}
 
+  local endorsement_policy=AND
+  if [ "$BYFN_ENDORSEMENT_POLICY" ] ; then
+      echo "overwrite endorsement_policy to $BYFN_ENDORSEMENT_POLICY"
+      endorsement_policy=$BYFN_ENDORSEMENT_POLICY
+  fi
   # while 'peer chaincode' command can get the orderer endpoint from the peer
   # (if join was successful), let's supply it directly as we know it using
   # the "-o" option
   if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
     set -x
-    peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+    peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v ${VERSION} -c '{"Args":["init","a","100","b","200"]}' -P "${endorsement_policy} ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
     res=$?
     set +x
   else
     set -x
-    peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "AND ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+    peer chaincode instantiate -o orderer.example.com:7050 --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -l ${LANGUAGE} -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "${endorsement_policy} ('Org1MSP.peer','Org2MSP.peer')" >&log.txt
     res=$?
     set +x
   fi

@@ -191,7 +191,7 @@ function networkUp() {
   fi
 
   # now run the end to end script
-  docker exec cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
+  docker exec ${BYFN_ENDORSEMENT_POLICY:+-e BYFN_ENDORSEMENT_POLICY=$BYFN_ENDORSEMENT_POLICY} cli scripts/script.sh $CHANNEL_NAME $CLI_DELAY $LANGUAGE $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Test failed"
     exit 1
