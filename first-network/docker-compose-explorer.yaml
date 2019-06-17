@@ -1,0 +1,40 @@
+version: '2'
+
+networks:
+  byfn:
+
+services:
+
+  explorerdb:
+    image: hyperledger/explorer-db:latest
+    container_name: explorerdb
+    hostname: explorerdb
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    volumes:
+      - ./explorer/app/persistence/fabric/postgreSQL/db/createdb.sh:/docker-entrypoint-initdb.d/createdb.sh
+      - ./pgdata:/var/lib/postgresql/data
+    networks:
+      - byfn
+
+  explorer:
+    image: hyperledger/explorer:latest
+    container_name: explorer
+    hostname: explorer
+    environment:
+      - DATABASE_HOST=explorerdb
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWD=password
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ./explorer/examples/net1/config.json:/opt/explorer/app/platform/fabric/config.json
+      - ./explorer/examples/net1/connection-profile:/opt/explorer/app/platform/fabric/connection-profile
+      - ./walletstore:/opt/wallet
+      - ./crypto-config:/tmp/crypto
+    command: sh -c "sleep 16&& node /opt/explorer/main.js && tail -f /dev/null"
+    ports:
+      - 8090:8080
+    networks:
+      - byfn
