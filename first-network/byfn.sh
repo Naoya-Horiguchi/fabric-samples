@@ -161,6 +161,8 @@ function networkUp() {
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_COUCH up -d 2>&1
     elif  [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_COUCH up -d 2>&1
+    elif  [ "$CONSENSUS_TYPE" == "minbft" ]; then
+      IMAGE_TAG=$IMAGETAG docker-compose ${COMPOSE_FILE_MINBFT:+-f $COMPOSE_FILE_MINBFT} -f $COMPOSE_FILE_COUCH up -d 2>&1
     else
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH up -d 2>&1
     fi
@@ -169,6 +171,8 @@ function networkUp() {
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA up -d 2>&1
     elif  [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 up -d 2>&1
+    elif  [ "$CONSENSUS_TYPE" == "minbft" ]; then
+      IMAGE_TAG=$IMAGETAG docker-compose ${COMPOSE_FILE_MINBFT:+-f $COMPOSE_FILE_MINBFT} up -d 2>&1
     else
       IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE up -d 2>&1
     fi
@@ -188,6 +192,11 @@ function networkUp() {
     sleep 1
     echo "Sleeping 15s to allow $CONSENSUS_TYPE cluster to complete booting"
     sleep 14
+  fi
+
+  if [ "$CONSENSUS_TYPE" == "minbft" ]; then
+    echo "Sleeping 5s to allow $CONSENSUS_TYPE cluster to complete booting"
+    sleep 5
   fi
 
   # now run the end to end script
@@ -220,6 +229,8 @@ function upgradeNetwork() {
         COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_COUCH"
       elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
         COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_COUCH"
+      elif [ "$CONSENSUS_TYPE" == "minbft" ]; then
+        COMPOSE_FILES="${COMPOSE_FILE_MINBFT:+-f $COMPOSE_FILE_MINBFT} -f $COMPOSE_FILE_COUCH"
       else
         COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH"
       fi
@@ -228,6 +239,8 @@ function upgradeNetwork() {
         COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_KAFKA"
       elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
         COMPOSE_FILES="-f $COMPOSE_FILE -f $COMPOSE_FILE_RAFT2"
+      elif [ "$CONSENSUS_TYPE" == "minbft" ]; then
+        COMPOSE_FILES="${COMPOSE_FILE_MINBFT:+-f $COMPOSE_FILE_MINBFT}"
       else
         COMPOSE_FILES="-f $COMPOSE_FILE"
       fi
@@ -277,7 +290,7 @@ function upgradeNetwork() {
 function networkDown() {
   # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
   # stop kafka and zookeeper containers in case we're running with kafka consensus-type
-  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_RAFT2 -f $COMPOSE_FILE_ORG3 down --volumes --remove-orphans
+  docker-compose -f $COMPOSE_FILE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_KAFKA -f $COMPOSE_FILE_RAFT2 ${COMPOSE_FILE_MINBFT:+-f $COMPOSE_FILE_MINBFT} -f $COMPOSE_FILE_ORG3 down --volumes --remove-orphans
 
   # Don't remove the generated artifacts -- note, the ledgers are always removed
   if [ "$MODE" != "restart" ]; then
@@ -429,6 +442,8 @@ function generateChannelArtifacts() {
     configtxgen -profile SampleDevModeKafka -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
   elif [ "$CONSENSUS_TYPE" == "etcdraft" ]; then
     configtxgen -profile SampleMultiNodeEtcdRaft -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
+  elif [ "$CONSENSUS_TYPE" == "minbft" ]; then
+    configtxgen -profile SampleSingleNodeMinbft -channelID byfn-sys-channel -outputBlock ./channel-artifacts/genesis.block
   else
     set +x
     echo "unrecognized CONSESUS_TYPE='$CONSENSUS_TYPE'. exiting"
@@ -502,6 +517,14 @@ COMPOSE_FILE_ORG3=docker-compose-org3.yaml
 COMPOSE_FILE_KAFKA=docker-compose-kafka.yaml
 # two additional etcd/raft orderers
 COMPOSE_FILE_RAFT2=docker-compose-etcdraft2.yaml
+
+if [ "$SGX_MODE" == SIM ] ; then
+	COMPOSE_FILE_MINBFT=docker-compose-minbft-sim.yaml
+elif [ "$SGX_MODE" == HW ] ; then
+	COMPOSE_FILE_MINBFT=docker-compose-minbft-hw.yaml
+else
+	COMPOSE_FILE_MINBFT=
+fi
 #
 # use golang as the default language for chaincode
 LANGUAGE=golang
