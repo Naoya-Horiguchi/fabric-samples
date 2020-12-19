@@ -18,6 +18,7 @@ CHANNEL_NAME="$1"
 DELAY="$2"
 TIMEOUT="$3"
 VERBOSE="$4"
+JOINBYSNAPSHOT="$5"
 : ${CHANNEL_NAME:="mychannel"}
 : ${DELAY:="3"}
 : ${TIMEOUT:="10"}
@@ -34,7 +35,12 @@ joinChannelWithRetry() {
   setGlobals $ORG
 
   set -x
-  peer channel join -b $CHANNEL_NAME.block >&log.txt
+  if [ "$JOINBYSNAPSHOT" ] ; then
+    ls -l "$JOINBYSNAPSHOT"
+    peer channel joinbysnapshot --snapshotpath "$JOINBYSNAPSHOT" >&log.txt
+  else
+    peer channel join -b $CHANNEL_NAME.block >&log.txt
+  fi
   res=$?
   { set +x; } 2>/dev/null
   cat log.txt

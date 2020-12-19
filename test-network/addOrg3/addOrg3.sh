@@ -153,7 +153,7 @@ function Org3Up () {
 }
 
 # Generate the needed certificates, the genesis block and start the network.
-function addOrg3 () {
+function addOrg3step0 () {
 
   # If the test network is not up, abort
   if [ ! -d ../organizations/ordererOrganizations ]; then
@@ -174,7 +174,9 @@ function addOrg3 () {
     echo "Bringing up network"
     Org3Up
   fi
+}
 
+function addOrg3step1 () {
   # Use the CLI container to create the configuration transaction needed to add
   # Org3 to the network
   echo
@@ -186,17 +188,18 @@ function addOrg3 () {
     echo "ERROR !!!! Unable to create config tx"
     exit 1
   fi
+}
 
+function addOrg3step2 () {
   echo
   echo "###############################################################"
   echo "############### Have Org3 peers join network ##################"
   echo "###############################################################"
-  docker exec Org3cli ./scripts/org3-scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  docker exec Org3cli ./scripts/org3-scripts/step2org3.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE $JOINBYSNAPSHOT
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to have Org3 peers join network"
     exit 1
   fi
-
 }
 
 # Tear down running network
@@ -298,7 +301,7 @@ done
 
 
 # Determine whether starting, stopping, restarting or generating for announce
-if [ "$MODE" == "up" ]; then
+if [ "$MODE" == "up" ] || [ "$MODE" == "step1" ] || [ "$MODE" == "step2" ]; then
   echo "Add Org3 to channel '${CHANNEL_NAME}' with '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}'"
   echo
 elif [ "$MODE" == "down" ]; then
@@ -312,7 +315,14 @@ fi
 
 #Create the network using docker compose
 if [ "${MODE}" == "up" ]; then
-  addOrg3
+  addOrg3step0
+  addOrg3step1
+  addOrg3step2
+elif [ "${MODE}" == "step1" ]; then
+  addOrg3step0
+  addOrg3step1
+elif [ "${MODE}" == "step2" ]; then
+  addOrg3step2
 elif [ "${MODE}" == "down" ]; then ## Clear the network
   networkDown
 elif [ "${MODE}" == "generate" ]; then ## Generate Artifacts
